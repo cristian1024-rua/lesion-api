@@ -1,6 +1,6 @@
 fastapi
 uvicorn
-transformers
-torch
 Pillow
 python-multipart
+numpy
+scikit-learn
