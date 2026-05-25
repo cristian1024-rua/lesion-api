@@ -15,7 +15,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-print("Cargando modelo liviano...")
+print("Cargando modelo...")
 MODEL_NAME = "google/vit-base-patch16-224"
 processor = ViTImageProcessor.from_pretrained(MODEL_NAME)
 model = ViTForImageClassification.from_pretrained(MODEL_NAME)
@@ -43,19 +43,16 @@ async def predict(file: UploadFile = File(...)):
     image_bytes = await file.read()
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     inputs = processor(images=image, return_tensors="pt")
-    
     with torch.no_grad():
         outputs = model(**inputs)
-    
     logits = outputs.logits
     idx = logits.argmax(-1).item()
     idx_lesion = idx % len(lesiones)
     predicted_label = lesiones[idx_lesion]
-    
     probs = torch.softmax(logits, dim=-1)
-    probabilidad = probs[0][idx].item()
-    
+    probabilidad = float(probs[0][idx].item())
     return {
         "diagnosis": predicted_label,
         "description": descripciones[predicted_label],
-        "probability": round(probabilidad,
+        "probability": round(probabilidad, 4)
+    }
